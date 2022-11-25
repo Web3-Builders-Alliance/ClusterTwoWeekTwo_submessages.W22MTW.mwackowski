@@ -75,8 +75,8 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
 fn handle_increment_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     //println!("{:?}", msg.clone());
     let contract_address = get_contract_address(&msg);
-    let err_str = "handle_increment_reply: ".to_owned() + &contract_address + " address";
     if contract_address.is_empty() {
+        let err_str = "handle_increment_reply: ".to_owned() + &contract_address + " address";
         panic!("{}", err_str);
     }
     
