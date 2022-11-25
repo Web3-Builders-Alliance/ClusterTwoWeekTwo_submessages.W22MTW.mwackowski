@@ -50,6 +50,7 @@ mod tests {
         let mut app = mock_app();
         let manager_id = app.store_code(contract_manager());
         let counter_id = app.store_code(contract_counter());
+        println!("counter id: {}, manager id: {}", counter_id, manager_id);
         (app, manager_id, counter_id)
     }
 
@@ -118,8 +119,6 @@ mod tests {
 
         assert_eq!(res.contracts.len(), 1);
         assert_eq!(res.contracts[0].1.address, "contract1");
-
-        //println!("{:?}", res.contracts[0].1);
     }
 
     #[test]
@@ -152,16 +151,64 @@ mod tests {
 
     #[test]
     fn create_counter_and_increment_twice() {
-        unimplemented!()
+        let (mut app, manager_id, counter_id) = store_code();
+
+        let manager_contract = manager_instantiate(&mut app, manager_id);
+
+        instantiate_new(&mut app, &manager_contract, counter_id);
+        increment(&mut app, &manager_contract, "contract1".to_string());
+        increment(&mut app, &manager_contract, "contract1".to_string());
+
+        let res = get_contracts(&app, &manager_contract); // query contracts from manager
+        let res = get_count(&app, res.contracts[0].1.address.as_str());
+        assert_eq!(res.count, 2);
     }
 
     #[test]
     fn create_counter_and_increment_and_reset() {
-        unimplemented!()
+        let (mut app, manager_id, counter_id) = store_code();
+        let manager_contract = manager_instantiate(&mut app, manager_id);
+        instantiate_new(&mut app, &manager_contract, counter_id);
+
+        increment(&mut app, &manager_contract, "contract1".to_string());
+
+        let res = get_contracts(&app, &manager_contract);
+        let res = get_count(&app, res.contracts[0].1.address.as_str());
+        assert_eq!(res.count, 1);  
+
+        reset(&mut app, &manager_contract, "contract1".to_string(), 0);
+        
+        let res = get_contracts(&app, &manager_contract); // query contracts from manager
+        let res = get_count(&app, res.contracts[0].1.address.as_str()); 
+        assert_eq!(res.count, 0);
     }
 
     #[test]
     fn create_two_counters_and_increment_each() {
-        unimplemented!()
+        let (mut app, manager_id, counter_id) = store_code();
+
+        let manager_contract1 = manager_instantiate(&mut app, manager_id);
+        let manager_contract2 = manager_instantiate(&mut app, manager_id);
+        println!("counter id: {}", counter_id);
+        instantiate_new(&mut app, &manager_contract1, counter_id); 
+        instantiate_new(&mut app, &manager_contract2, counter_id);
+        
+        let res = get_contracts(&app, &manager_contract1);
+        assert_eq!(res.contracts.len(), 1);
+        
+        let res = get_contracts(&app, &manager_contract2);
+        assert_eq!(res.contracts.len(), 1);
+        
+        increment(&mut app, &manager_contract1, "contract2".to_string()); // adds 1 to counter (1)
+        increment(&mut app, &manager_contract2, "contract3".to_string()); // adds 1 to counter (2)
+        println!(">> manager_contract1 addr: {}", manager_contract1.addr());
+        println!(">> manager_contract2 addr: {}", manager_contract2.addr());
+        let res = get_contracts(&app, &manager_contract1); // query contracts from manager
+        let res = get_count(&app, res.contracts[0].1.address.as_str()); 
+        assert_eq!(res.count, 1);
+
+        let res = get_contracts(&app, &manager_contract2); // query contracts from manager
+        let res = get_count(&app, res.contracts[0].1.address.as_str()); 
+        assert_eq!(res.count, 1);   
     }
 }

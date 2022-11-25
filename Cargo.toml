@@ -1,0 +1,20 @@
+[workspace]
+members = ["contracts/*"]
+
+# name of the package from Cargo.toml file within /counter package
+[profile.release.package.counter] 
+codegen-units = 1
+incremental = false
+
+# name of the package from Cargo.toml file within /manager package
+[profile.release.package.manager]
+codegen-units = 1
+incremental = false
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
