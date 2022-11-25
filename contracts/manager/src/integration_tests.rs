@@ -74,6 +74,7 @@ mod tests {
         let msg = ExecuteMsg::InstantiateNewCounter {
             code_id: counter_id,
         };
+        println!("counter id from instantate_new(): {}", counter_id);
         let cosmos_msg = manager_contract.call(msg).unwrap();
         app.execute(Addr::unchecked(USER), cosmos_msg).unwrap();
     }

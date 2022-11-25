@@ -9,8 +9,8 @@ pub enum ContractError {
     #[error("Unauthorized")]
     Unauthorized {},
 
-    #[error("Not Found")]
-    NotFound {},
+    #[error("Not Found: {val:?}")]
+    NotFound {val: String},
 
     #[error("Custom Error val: {val:?}")]
     CustomError { val: String },

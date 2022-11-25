@@ -75,12 +75,29 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
 fn handle_increment_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     //println!("{:?}", msg.clone());
     let contract_address = get_contract_address(&msg);
+    let err_str = "handle_increment_reply: ".to_owned() + &contract_address + " address";
+    if contract_address.is_empty() {
+        panic!("{}", err_str);
+    }
     
-    CONTRACTS.update(deps.storage, (&MAP_KEY, &contract_address), |state| -> Result<_, ContractError> {
-        let mut i_state = state.unwrap();
-        i_state.count += 1;
-        Ok(i_state)
-    }).unwrap();
+    match CONTRACTS.load(deps.storage, (&MAP_KEY, &contract_address)) {
+        Ok(mut state) => {
+            state.count = state.count.checked_add(1).unwrap();
+            CONTRACTS.save(deps.storage, (&MAP_KEY, &contract_address), &state)?;
+        }
+        Err(_) => {
+         let state = State {
+         address: contract_address.clone(),
+         count: 99,
+         };
+            CONTRACTS.save(deps.storage, (&MAP_KEY, &contract_address), &state)?;
+        }
+    }
+    // CONTRACTS.update(deps.storage, (&MAP_KEY, &contract_address), |state| -> Result<_, ContractError> {
+    //     let mut i_state = state.unwrap();
+    //     i_state.count += 1;
+    //     Ok(i_state)
+    // }).unwrap();
 
     Ok(Response::default())
 }
@@ -127,7 +144,7 @@ pub fn instantiate_new_counter(
 
 pub fn try_increment(deps: DepsMut, contract: String) -> Result<Response, ContractError> {
     if CONTRACTS.has(deps.storage, (&MAP_KEY, &contract)) == false {
-        return Err(ContractError::NotFound {});
+        return Err(ContractError::NotFound {val: contract.clone()});
     }
 
     let execute_message = WasmMsg::Execute {
@@ -155,7 +172,7 @@ pub fn try_reset(
     count: i32,
 ) -> Result<Response, ContractError> {
     if CONTRACTS.has(deps.storage, (&MAP_KEY, &contract)) == false {
-        return Err(ContractError::NotFound {});
+        return Err(ContractError::NotFound { val: contract.clone() });
     }
 
     let execute_message = WasmMsg::Execute {
@@ -196,12 +213,12 @@ fn query_get_contracts(deps: Deps) -> StdResult<GetContractsResponse> {
 //helper functions for parsing reply data
 fn get_contract_address(msg: &Reply) -> String {
     let result:String = msg.result.clone().unwrap().events.iter().filter(|event| event.ty == "wasm" && event.attributes[0].key == "_contract_addr").map(|p| p.attributes[0].value.clone()).collect();
-    //println!("{:?}", result);
+    // println!("get_contract_address {:?}", &result);
     result
 }
 
 fn get_reset_count(msg: &Reply) -> i32 {
     let result :String = msg.result.clone().unwrap().events.iter().filter(|event| event.ty == "wasm" && event.attributes.len() == 3 && event.attributes[1].value == "reset").map(|p| p.attributes[2].value.clone()).collect();
-    //println!("TEST {:?}", result);
+    // println!("get_reset_count {:?}", &result);
     result.parse().unwrap()
 }
