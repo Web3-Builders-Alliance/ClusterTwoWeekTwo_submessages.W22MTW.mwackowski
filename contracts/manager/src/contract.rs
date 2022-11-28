@@ -212,7 +212,10 @@ fn query_get_contracts(deps: Deps) -> StdResult<GetContractsResponse> {
 ////////////////////////////
 //helper functions for parsing reply data
 fn get_contract_address(msg: &Reply) -> String {
-    let result:String = msg.result.clone().unwrap().events.iter().filter(|event| event.ty == "wasm" && event.attributes[0].key == "_contract_addr").map(|p| p.attributes[0].value.clone()).collect();
+    let result:String = msg.result.clone()
+        .unwrap()
+        .events.iter()
+        .filter(|event| event.ty == "execute" && event.attributes[0].key == "_contract_address").map(|p| p.attributes[0].value.clone()).collect();
     // println!("get_contract_address {:?}", &result);
     result
 }

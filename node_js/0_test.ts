@@ -116,13 +116,27 @@ describe("Messages Fullstack Test", () => {
         }
     }).timeout(50000);
 
-    it("Increment", async() => {
+    xit("Increment", async() => {
         let client = await setupClient(mnemonic, rpcEndpoint, "0.025ujunox");
         let res = await client.execute(await getAddress(mnemonic), 
         manager_contract_address, {  increment: { contract: counter_contract_address}},
         "auto", "", 
         [{amount: "10000", denom: "ujunox"}]);
         console.log(res);
+    }).timeout(20000);
+
+
+    xit("Increment twice", async() => {
+        let client = await setupClient(mnemonic, rpcEndpoint, "0.025ujunox");
+        let res = await client.execute(
+            await getAddress(mnemonic), manager_contract_address, {increment : { contract: counter_contract_address}}, "auto", "", []
+        );
+        console.log(res);
+
+        let res2 = await client.execute(
+            await getAddress(mnemonic), manager_contract_address, {increment : { contract: counter_contract_address}}, "auto", "", []
+        );  
+        console.log(res2);
     }).timeout(20000);
 
 
